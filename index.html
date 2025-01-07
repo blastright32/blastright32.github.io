@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON File Processor</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 0;
+      background-color: #f4f4f9;
+      text-align: center;
+    }
+    h1 {
+      color: #333;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    input[type="file"] {
+      margin: 10px 0;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .download {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>FBGM Draft Class Stat Generator</h1>
+    <input type="file" id="jsonFile" accept=".json" />
+    <button id="processButton">Add Stats</button>
+    <a id="downloadLink" class="download" style="display: none;">Download Modified File</a>
+  </div>
+
+  <script>
+    document.getElementById('processButton').addEventListener('click', () => {
+      const fileInput = document.getElementById('jsonFile');
+      const file = fileInput.files[0];
+
+      if (!file) {
+        alert('Please upload a JSON file.');
+        return;
+      }
+
+      // FBS Teams and their 2024 conference alignments
+      const teamConferenceMap = {
+        // SEC
+        "Alabama": "SEC",
+        "Arkansas": "SEC",
+        "Auburn": "SEC",
+        "Florida": "SEC",
+        "Georgia": "SEC",
+        "Kentucky": "SEC",
+        "LSU": "SEC",
+        "Mississippi State": "SEC",
+        "Missouri": "SEC",
+        "Ole Miss": "SEC",
+        "South Carolina": "SEC",
+        "Tennessee": "SEC",
+        "Texas A&M": "SEC",
+        "Vanderbilt": "SEC",
+        "Oklahoma": "SEC",
+        "Texas": "SEC",
+
+        // Big Ten
+        "Illinois": "Big Ten",
+        "Indiana": "Big Ten",
+        "Iowa": "Big Ten",
+        "Maryland": "Big Ten",
+        "Michigan": "Big Ten",
+        "Michigan State": "Big Ten",
+        "Minnesota": "Big Ten",
+        "Nebraska": "Big Ten",
+        "Northwestern": "Big Ten",
+        "Ohio State": "Big Ten",
+        "Penn State": "Big Ten",
+        "Purdue": "Big Ten",
+        "Rutgers": "Big Ten",
+        "Wisconsin": "Big Ten",
+        "Oregon": "Big Ten",
+        "Washington": "Big Ten",
+        "UCLA": "Big Ten",
+        "USC": "Big Ten",
+
+        // ACC
+        "Boston College": "ACC",
+        "Clemson": "ACC",
+        "Duke": "ACC",
+        "Florida State": "ACC",
+        "Georgia Tech": "ACC",
+        "Louisville": "ACC",
+        "Miami (FL)": "ACC",
+        "North Carolina": "ACC",
+        "NC State": "ACC",
+        "Pittsburgh": "ACC",
+        "Syracuse": "ACC",
+        "Virginia": "ACC",
+        "Virginia Tech": "ACC",
+        "Wake Forest": "ACC",
+        "California": "ACC",
+        "Stanford": "ACC",
+        "SMU": "ACC",
+        "Notre Dame": "ACC",
+
+        // Big 12
+        "Baylor": "Big 12",
+        "BYU": "Big 12",
+        "Cincinnati": "Big 12",
+        "Houston": "Big 12",
+        "Iowa State": "Big 12",
+        "Kansas": "Big 12",
+        "Kansas State": "Big 12",
+        "Oklahoma State": "Big 12",
+        "TCU": "Big 12",
+        "Texas Tech": "Big 12",
+        "UCF": "Big 12",
+        "West Virginia": "Big 12",
+        "Arizona": "Big 12",
+        "Arizona State": "Big 12",
+        "Colorado": "Big 12",
+        "Utah": "Big 12",
+
+        // Pac-12 (remaining teams in 2024)
+        "Oregon State": "Pac-12",
+        "Washington State": "Pac-12",
+
+        // AAC
+        "East Carolina": "AAC",
+        "Florida Atlantic": "AAC",
+        "Memphis": "AAC",
+        "Navy": "AAC",
+        "North Texas": "AAC",
+        "Rice": "AAC",
+        "South Florida": "AAC",
+        "Temple": "AAC",
+        "Tulane": "AAC",
+        "Tulsa": "AAC",
+        "UAB": "AAC",
+        "UTSA": "AAC",
+
+        // Mountain West
+        "Air Force": "Mountain West",
+        "Boise State": "Mountain West",
+        "Colorado State": "Mountain West",
+        "Fresno State": "Mountain West",
+        "Hawai'i": "Mountain West",
+        "Nevada": "Mountain West",
+        "New Mexico": "Mountain West",
+        "San Diego State": "Mountain West",
+        "San Jose State": "Mountain West",
+        "UNLV": "Mountain West",
+        "Utah State": "Mountain West",
+        "Wyoming": "Mountain West",
+
+        // Sun Belt
+        "Appalachian State": "Sun Belt",
+        "Arkansas State": "Sun Belt",
+        "Coastal Carolina": "Sun Belt",
+        "Georgia Southern": "Sun Belt",
+        "Georgia State": "Sun Belt",
+        "James Madison": "Sun Belt",
+        "Louisiana": "Sun Belt",
+        "Louisiana-Monroe": "Sun Belt",
+        "Marshall": "Sun Belt",
+        "Old Dominion": "Sun Belt",
+        "South Alabama": "Sun Belt",
+        "Southern Miss": "Sun Belt",
+        "Texas State": "Sun Belt",
+        "Troy": "Sun Belt",
+
+        // Conference USA
+        "FIU": "Conference USA",
+        "Jacksonville State": "Conference USA",
+        "Liberty": "Conference USA",
+        "Louisiana Tech": "Conference USA",
+        "Middle Tennessee": "Conference USA",
+        "New Mexico State": "Conference USA",
+        "Sam Houston State": "Conference USA",
+        "UTEP": "Conference USA",
+        "Western Kentucky": "Conference USA",
+
+        // Mid Atlantic
+        "Ohio": "Mid Atlantic",
+        "Miami (OH)": "Mid Atlantic",
+        "Buffalo": "Mid Atlantic",
+        "Bowling Green": "Mid Atlantic",
+        "Western Michigan": "Mid Atlantic",
+        "Toledo": "Mid Atlantic",
+        "Northern Illinois": "Mid Atlantic",
+        "Akron": "Mid Atlantic",
+        "Eastern Michigan": "Mid Atlantic",
+        "Central Michigan": "Mid Atlantic",
+        "Ball State": "Mid Atlantic",
+        "Kent State": "Mid Atlantic",
+      };
+
+      const reader = new FileReader();
+
+      reader.onload = (event) => {
+        try {
+          const jsonData = JSON.parse(event.target.result);
+
+          if (!jsonData.players || !Array.isArray(jsonData.players)) {
+            alert('Invalid JSON file format.');
+            return;
+          }
+
+          // Process the players
+          jsonData.players.forEach((player) => {
+            const ratings = player.ratings?.[0];
+            const college = player.college;
+            const conf = teamConferenceMap[college] || 'FCS';
+
+            if (ratings) {
+              // Assign variables for specified attributes
+              const ovr = ratings.ovr;
+              const pos = ratings.pos;
+              const hgt = ratings.hgt;
+              const stre = ratings.stre;
+              const spd = ratings.spd;
+              const endu = ratings.endu;
+              const thv = ratings.thv;
+              const thp = ratings.thp;
+              const tha = ratings.tha;
+              const bsc = ratings.bsc;
+              const elu = ratings.elu;
+              const rtr = ratings.rtr;
+              const hnd = ratings.hnd;
+              const rbk = ratings.rbk;
+              const pbk = ratings.pbk;
+              const pcv = ratings.pcv;
+              const tck = ratings.tck;
+              const prs = ratings.prs;
+              const rns = ratings.rns;
+              const kpw = ratings.kpw;
+              const kac = ratings.kac;
+              const ppw = ratings.ppw;
+              const pac = ratings.pac;
+
+              const existingNote = player.note || '';
+
+              if (pos == 'QB') {
+                // hgt, thp, tha, thv, spd, elu
+                basePyds = 5500;
+                basePcmp = 55;
+                basePtds = 55;
+                basePint = 18;
+                baseRyds = 1400;
+                baseRtds = 20;
+                factorPyds = (hgt * 2 + thp * 3 + tha * 2 + thv * 1) / 800;
+                factorPcmp = (hgt * 2 + thp * 1 + tha * 4 + thv * 2) / 900;
+                factorPtds = (hgt * 2 + thp * 4 + tha * 1 + thv * 2) / 900;
+                factorPint = (hgt * 2 + thp * 2 + tha * 3 + thv * 2) / 900;
+                factorRyds = (hgt * 1 + spd * 2 + elu * 3) / 600;
+                factorRtds = (hgt * 1 + stre * 1 + spd * 2 + elu * 3) / 700;
+                if (conf == 'SEC') {
+                  factorPconf = 1.1
+                  factorPiconf = 1.4
+                  factorRconf = 1.1
+                }
+                else if (conf == 'Big Ten') {
+                  factorPconf = 0.9
+                  factorPiconf = 1.2
+                  factorRconf = 0.8
+                }
+                else if (conf == 'ACC') {
+                  factorPconf = 1.2
+                  factorPiconf = 1.2
+                  factorRconf = 1
+                }
+                else if (conf == 'Big 12') {
+                  factorPconf = 1.5
+                  factorPiconf = 0.9
+                  factorRconf = 0.7
+                }
+                else if (conf == 'Pac-12') {
+                  factorPconf = 0.9
+                  factorPiconf = 1
+                  factorRconf = 0.8
+                }
+                else if (conf == 'AAC') {
+                  factorPconf = 0.6
+                  factorPiconf = 0.9
+                  factorRconf = 1.4
+                }
+                else if (conf == 'Mountain West') {
+                  factorPconf = 1.2
+                  factorPiconf = 0.7
+                  factorRconf = 1
+                }
+                else if (conf == 'Sun Belt') {
+                  factorPconf = 0.8
+                  factorPiconf = 0.8
+                  factorRconf = 1
+                }
+                else if (conf == 'Conference USA') {
+                  factorPconf = 0.7
+                  factorPiconf = 0.7
+                  factorRconf = 0.8
+                }
+                else if (conf == 'Mid Atlantic') {
+                  factorPconf = 0.7
+                  factorPiconf = 0.8
+                  factorRconf = 0.9
+                }
+                else {
+                  factorPconf = 1
+                  factorPiconf = 1
+                  factorRconf = 1
+                }
+                pyds = Math.trunc(basePyds * factorPyds * factorPconf + (Math.random() * 500 - 250));
+                pcmp = basePcmp + (Math.trunc(20 * factorPcmp * factorPconf + (Math.random() * 3 - 1.5)));
+                ptds = Math.trunc(basePtds * factorPtds * factorPconf + (Math.random() * 5 - 2.5));
+                pint = basePint - (Math.trunc(18 * factorPint * factorPiconf + (Math.random() * 6 - 3)));
+                ryds = Math.trunc(baseRyds * factorRyds * factorRconf + (Math.random() * 100 - 50));
+                rtds = Math.trunc(baseRtds * factorRtds * factorRconf + (Math.random() * 4 - 2));
+              
+                
+                newNote = `
+                ${pyds} pYD / ${pcmp}% Cmp% / ${ptds} pTD / ${pint} pINT | ${ryds} rYD / ${rtds} rTD
+              `.trim();
+              }
+
+              else if (pos == 'RB') {
+                // hgt, stre, spd, elu, rtr, hnd
+                newNote = ``.trim()
+              }
+
+              else if (pos == 'WR') {
+                // hgt, stre, spd, elu, rtr, hnd
+                newNote = ``.trim()
+              }
+
+              else if (pos == 'TE') {
+                // hgt, stre, spd, rtr, hnd
+                newNote = ``.trim()
+              }
+
+              else if (pos == 'OL') {
+                // hgt, stre, rbk, pbk
+                newNote = ``.trim()
+              }
+
+              else if (pos == 'DL') {
+                // hgt, stre, tck, prs, rns
+                newNote = ``.trim()
+              }
+
+              else if (pos == 'LB') {
+                // hgt, stre, tck, pcv, prs, rns
+                newNote = ``.trim()
+              }
+
+              else if (pos == 'CB') {
+                // hgt, spd, pcv, tck
+                newNote = ``.trim()
+              }
+
+              else if (pos == 'S') {
+                // hgt, stre, spd, pcv, tck
+                newNote = ``.trim()
+              }
+
+              else if (pos == 'K') {
+                // hgt, kpw, kac
+                newNote = ``.trim()
+              }
+
+              else if (pos == 'P') {
+                // hgt, ppw, pac
+                newNote = ``.trim()
+              }
+
+              player.note = newNote.replace(/\s+/g, ' ');
+            }
+          });
+
+          // Create a downloadable JSON file
+          const modifiedJson = JSON.stringify(jsonData, null, 2);
+          const blob = new Blob([modifiedJson], { type: 'application/json' })
+          const originalFileName = file.name.replace(/\.json$/, '');
+          const newFileName = `${originalFileName}stats.json`;;
+          const downloadLink = document.getElementById('downloadLink');
+          downloadLink.href = URL.createObjectURL(blob);
+          downloadLink.download = newFileName;
+          downloadLink.textContent = 'Download Modified File';
+          downloadLink.style.display = 'inline-block';
+        } catch (error) {
+          alert('Error processing the file. Make sure it is valid JSON.');
+          console.error(error);
+        }
+      };
+
+      reader.readAsText(file);
+    });
+  </script>
+</body>
+</html>
