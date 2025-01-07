@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FBGM College Stats</title>
+  <title>JSON File Processor</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -269,8 +269,8 @@
                 factorPcmp = (hgt * 2 + thp * 1 + tha * 4 + thv * 2) / 900;
                 factorPtds = (hgt * 2 + thp * 4 + tha * 1 + thv * 2) / 900;
                 factorPint = (hgt * 2 + thp * 2 + tha * 3 + thv * 2) / 900;
-                factorRyds = (hgt * 1 + spd * 2 + elu * 3) / 600;
-                factorRtds = (hgt * 1 + stre * 1 + spd * 2 + elu * 3) / 700;
+                factorRyds = (hgt * 0.5 + spd * 2.5 + elu * 4) / 700;
+                factorRtds = (hgt * 0.5 + stre * 0.5 + spd * 2 + elu * 4) / 700;
                 if (conf == 'SEC') {
                   factorPconf = 1.1
                   factorPiconf = 1.4
